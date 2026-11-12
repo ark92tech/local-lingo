@@ -56,6 +56,15 @@ h1 span{color:var(--muted);font-weight:600}
 .say{border:0;background:#F1F3F4;border-radius:50%;width:36px;height:36px;flex:0 0 36px;display:grid;place-items:center}
 .say svg{width:18px;height:18px}
 .mean{color:var(--muted);font-weight:500}
+.sl{font-size:.9rem;color:#3c4043}.sl b{font-weight:700;letter-spacing:.02em;color:var(--ink)}
+.rep{border:0;background:none;color:var(--muted);font-size:.78rem;font-weight:600;padding:4px 0;margin-top:2px;align-self:flex-start;text-decoration:underline;text-underline-offset:2px}
+.voice{position:relative;margin:8px 0 0;font-size:.85rem;font-weight:600;color:#3c4043;display:flex;align-items:center;gap:6px}
+details.src summary{cursor:pointer;font-weight:800;font-size:1.05rem;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.src summary::-webkit-details-marker{display:none}
+details.src summary::after{content:"Show";font-size:.85rem;font-weight:700;color:var(--blue)}
+details.src[open] summary::after{content:"Hide"}
+details.src[open] summary{margin-bottom:8px}
+.reportall{display:inline-block;margin-top:10px;font-weight:700}
 .mean sup a{text-decoration:none;font-size:.7rem;font-weight:700;margin-left:2px}
 .also{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .also button{border:0;background:#F1F3F4;border-radius:999px;padding:5px 10px;font-size:.8rem;font-weight:600;display:flex;gap:6px;align-items:center}
@@ -92,7 +101,7 @@ h1 span{color:var(--muted);font-weight:600}
   <div class="chips" id="chips" role="group" aria-label="Regions"></div>
  </div>
  <main>
-  <section class="hero" id="hero"><h2 id="rname"></h2><p id="rplaces"></p></section>
+  <section class="hero" id="hero"><h2 id="rname"></h2><p id="rplaces"></p><p class="voice" id="voice"></p></section>
   <div class="bar">
    <div class="seg" role="tablist">
     <button role="tab" id="tWords" aria-selected="true">Words</button>
@@ -102,7 +111,7 @@ h1 span{color:var(--muted);font-weight:600}
   </div>
   <div id="pWords"><p class="count" id="count"></p><div class="grid" id="words"></div></div>
   <div id="pQuiz" hidden><div class="quiz" id="quiz"></div></div>
-  <section class="src" id="sources"><h3>Sources</h3><p>Words come from 19th-century dialect archives, university dialect surveys, YouGov polling and regional dictionaries, old and new mixed together. Tap a number next to a meaning to see where it came from. Region borders on the map are approximate.</p><ol id="srcList"></ol></section>
+  <details class="src" id="sources"><summary id="srcSum">Sources</summary><p>Words come from 19th-century dialect archives, university dialect surveys, YouGov polling and regional dictionaries, old and new mixed together. Tap a number next to a meaning to see where it came from. Region borders on the map are approximate. Voices use the accents built into your phone or computer, so they hint at the region rather than match it.</p><ol id="srcList"></ol><a class="reportall" href="https://github.com/ark92tech/local-lingo/issues/new?title=Report%3A%20&body=What%27s%20not%20quite%20right%3F%0A%0A" target="_blank" rel="noopener">⚑ Report a word or suggest a new one</a></details>
   <p class="foot">Built for Ark · data in <a href="words.json">words.json</a></p>
  </main>
 </div>
@@ -117,7 +126,23 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random(
 const pick=a=>a[Math.random()*a.length|0];
 const reg=id=>R.find(r=>r.id===id);
 let srcNum={};
-function say(t){try{const u=new SpeechSynthesisUtterance(t);u.lang="en-GB";const v=speechSynthesis.getVoices().find(v=>v.lang==="en-GB");if(v)u.voice=v;u.rate=.92;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+const VP={gla:{n:["Fiona"],l:["en-GB"],p:1,r:.95,a:"Scottish"},abd:{n:["Fiona"],l:["en-GB"],p:.85,r:.88,a:"Scottish"},ni:{n:["Moira"],l:["en-IE"],p:1.05,r:1,a:"Irish"},
+ne:{n:["Daniel","Microsoft Ryan","Google UK English Male"],p:1.1,r:1.05},yor:{n:["Arthur","Microsoft George","Google UK English Male"],p:.85,r:.92},
+man:{n:["Oliver","Microsoft Ryan","Google UK English Male"],p:1,r:1.08},liv:{n:["Kate","Microsoft Libby","Google UK English Female"],p:1.2,r:1.12},
+bham:{n:["Serena","Microsoft Hazel","Google UK English Female"],p:.9,r:.9},em:{n:["Martha","Microsoft Susan","Google UK English Female"],p:1.05,r:.95},
+nor:{n:["Daniel","Microsoft George","Google UK English Male"],p:.8,r:.85},lon:{n:["Daniel","Microsoft Ryan","Google UK English Male"],p:1,r:1.1},
+iow:{n:["Kate","Microsoft Sonia","Google UK English Female"],p:.95,r:.85},sw:{n:["Arthur","Microsoft Thomas","Google UK English Male"],p:.8,r:.82},
+wal:{n:["Nia","Aled","Catrin"],l:["cy-GB","cy"],p:1.15,r:.95,a:"Welsh"}};
+function voiceFor(id){let vs=[];try{vs=speechSynthesis.getVoices()}catch(e){}const c=VP[id]||{n:[]};
+ let v=null;for(const n of c.n){v=vs.find(x=>x.name.includes(n));if(v)break}
+ if(!v&&c.l)for(const l of c.l){v=vs.find(x=>x.lang.replace("_","-").toLowerCase().startsWith(l.toLowerCase()));if(v)break}
+ if(!v)v=vs.find(x=>/en[-_]GB/i.test(x.lang))||vs.find(x=>/^en/i.test(x.lang))||null;return v}
+function voiceLabel(){const v=voiceFor(cur);$("#voice").innerHTML=v?`🔊 Voice: ${esc(v.name.replace(/Microsoft |Google | Online \(Natural\)/g,"").split(" - ")[0])}`:"🔊 Voice: your device default"}
+try{speechSynthesis.onvoiceschanged=()=>{if(R)voiceLabel()}}catch(e){}
+function speakable(p){return p.replace(/\(.*?\)/g,"").replace(/-/g,"").toLowerCase()}
+function say(t,p){try{const c=VP[cur]||{p:1,r:.92};const u=new SpeechSynthesisUtterance(p?speakable(p):t);const v=voiceFor(cur);if(v){u.voice=v;u.lang=v.lang}else u.lang="en-GB";u.pitch=c.p;u.rate=c.r;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+const REPO="https://github.com/ark92tech/local-lingo/issues/new";
+function reportURL(w){const r=reg(cur);return REPO+"?title="+encodeURIComponent(`Report: “${w.w}” (${r.name})`)+"&body="+encodeURIComponent(`Word: ${w.w}\nRegion: ${r.name}\nShown meaning: ${w.m}\n\nWhat's not quite right? (meaning, spelling, region, pronunciation…)\n\n`)}
 function byMeaning(m,not){const out=[];R.forEach(r=>{if(r.id===not)return;r.words.forEach(w=>{if(w.m===m&&!out.some(o=>o.w===w.w&&o.r===r.id))out.push({w:w.w,r:r.id})})});return out}
 function setRegion(id,scroll){cur=id;page=0;if(!order[id])order[id]=shuffle(reg(id).words);
  document.documentElement.style.setProperty("--c",COLS[id]);
@@ -125,7 +150,7 @@ function setRegion(id,scroll){cur=id;page=0;if(!order[id])order[id]=shuffle(reg(
  document.querySelectorAll(".pin").forEach(z=>z.classList.toggle("on",z.dataset.r===id));
  document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.r===id));
  const ch=document.querySelector(`.chip[data-r="${id}"]`);if(ch)ch.scrollIntoView({block:"nearest",inline:"center",behavior:"smooth"});
- $("#rname").textContent=reg(id).name;$("#rplaces").textContent=reg(id).places;
+ $("#rname").textContent=reg(id).name;$("#rplaces").textContent=reg(id).places;voiceLabel();
  history.replaceState(null,"","#"+id);
  if(mode==="quiz")newQuiz();else renderWords();
  if(scroll)$("#hero").scrollIntoView({behavior:"smooth",block:"start"})}
@@ -133,9 +158,9 @@ function renderWords(){const r=reg(cur),o=order[cur],n=o.length;
  const start=(page*20)%n;let list=[];for(let i=0;i<Math.min(20,n);i++)list.push(o[(start+i)%n]);
  $("#count").textContent=n>20?`${Math.min(20,n)} of ${n} words · tap “New 20” for more`:`All ${n} words`;
  $("#words").innerHTML=list.map((w,i)=>{const also=byMeaning(w.m,cur).filter(a=>a.w!==w.w).slice(0,3);
-  return `<article class="w" style="animation-delay:${i*25}ms"><div class="top"><div class="word">${esc(w.w)}</div><button class="say" data-say="${esc(w.w)}" aria-label="Say ${esc(w.w)}">${SPK}</button></div>
+  return `<article class="w" style="animation-delay:${i*25}ms"><div class="top"><div class="word">${esc(w.w)}</div><button class="say" data-say="${esc(w.w)}" data-p="${esc(w.p||"")}" aria-label="Say ${esc(w.w)}">${SPK}</button></div>${w.p?`<div class="sl">sounds like <b>${esc(w.p)}</b></div>`:""}
   <div class="mean">${esc(w.m)}<sup><a href="#s-${w.s}" title="${esc(D.sources[w.s][0])}">${srcNum[w.s]}</a></sup></div>
-  ${also.length?`<div class="also">${also.map(a=>`<button data-go="${a.r}" style="--c:${COLS[a.r]}"><i></i><b>${esc(a.w)}</b> ${esc(reg(a.r).name.split(/ [&,]/)[0])}</button>`).join("")}</div>`:""}</article>`}).join("")}
+  ${also.length?`<div class="also">${also.map(a=>`<button data-go="${a.r}" style="--c:${COLS[a.r]}"><i></i><b>${esc(a.w)}</b> ${esc(reg(a.r).name.split(/ [&,]/)[0])}</button>`).join("")}</div>`:""}<a class="rep" href="${reportURL(w)}" target="_blank" rel="noopener">⚑ Not quite right? Report</a></article>`}).join("")}
 function makeQ(){const types=shuffle(["word","where","mean"]);
  for(const t of types){
   if(t==="word"){const m=pick(Object.keys(MEAN).filter(k=>MEAN[k].length>=3));const right=pick(MEAN[m]);
@@ -163,14 +188,15 @@ let MEAN={},ALLM=[];
 fetch("words.json").then(r=>r.json()).then(d=>{D=d;R=d.regions;
  R.forEach(r=>r.words.forEach(w=>{(MEAN[w.m]=MEAN[w.m]||[]).push({w:w.w,r:r.id})}));ALLM=Object.keys(MEAN);
  const used=[];R.forEach(r=>r.words.forEach(w=>{if(!used.includes(w.s))used.push(w.s)}));used.forEach((k,i)=>srcNum[k]=i+1);
- $("#srcList").innerHTML=used.map(k=>`<li id="s-${k}"><a href="${esc(d.sources[k][1])}" target="_blank" rel="noopener">${esc(d.sources[k][0])}</a></li>`).join("");
+ $("#srcSum").textContent=`Sources (${used.length})`;$("#srcList").innerHTML=used.map(k=>`<li id="s-${k}"><a href="${esc(d.sources[k][1])}" target="_blank" rel="noopener">${esc(d.sources[k][0])}</a></li>`).join("");
  $("#chips").innerHTML=R.map(r=>`<button class="chip" data-r="${r.id}" style="--c:${COLS[r.id]}"><i></i>${esc(r.name)}</button>`).join("");
  const h=location.hash.slice(1);setRegion(R.some(r=>r.id===h)?h:"iow")});
 document.addEventListener("click",e=>{const t=e.target.closest("[data-r],[data-go],[data-say],.opt");if(!t)return;
  if(t.classList.contains("opt"))return answer(t);
- if(t.dataset.say)return say(t.dataset.say);
+ if(t.dataset.say)return say(t.dataset.say,t.dataset.p);
  const id=t.dataset.go||t.dataset.r;if(id)setRegion(id,!!t.dataset.go)});
 document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.classList.contains("zone")){e.preventDefault();setRegion(e.target.dataset.r,true)}});
+document.addEventListener("click",e=>{const a=e.target.closest('a[href^="#s-"]');if(a){e.preventDefault();const d=$("#sources");d.open=true;const li=document.querySelector(a.getAttribute("href"));if(li){li.scrollIntoView({behavior:"smooth",block:"center"});li.style.background="#FEF7E0";setTimeout(()=>li.style.background="",2000)}}});
 $("#tWords").onclick=()=>setMode("words");$("#tQuiz").onclick=()=>setMode("quiz");
 $("#gen").onclick=()=>{if(mode==="quiz")return newQuiz();const n=order[cur].length;if(n<=20)order[cur]=shuffle(order[cur]);else{page++;if(page*20>=n){order[cur]=shuffle(order[cur]);page=0}}renderWords()};
 </script>

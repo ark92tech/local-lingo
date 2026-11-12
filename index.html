@@ -138,7 +138,7 @@ bham:{n:["Flo","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p
 lon:{n:["Daniel","Microsoft George","Microsoft Ryan","Google UK English Male"],p:1,r:1.1},iow:{n:["Google UK English Female","Microsoft Sonia","Shelley"],p:.95,r:.88},
 sw:{n:["Reed","Microsoft Thomas","Microsoft George","Microsoft Ryan","Google UK English Male"],p:.78,r:.82},wal:{n:["Nia","Aled","Catrin","Sandy","Microsoft Libby","Microsoft Sonia","Google UK English Female"],l:["cy-GB","cy"],p:1.2,r:.95}};
 const VKEY=id=>"ll-voice-"+id;
-function myVoices(){let vs=[];try{vs=speechSynthesis.getVoices()}catch(e){}return vs.filter(v=>/^(en|cy)/i.test(v.lang))}
+function myVoices(){let vs=[];try{vs=speechSynthesis.getVoices()}catch(e){}return vs.filter(v=>/^(en[-_](GB|IE)|cy)/i.test(v.lang)||/Fiona|Moira/.test(v.name))}
 function voiceFor(id){let vs=[];try{vs=speechSynthesis.getVoices()}catch(e){}const c=VP[id]||{n:[]};
  let v=null;try{const s=localStorage.getItem(VKEY(id));if(s)v=vs.find(x=>x.name===s)||null}catch(e){}
  if(!v){for(const n of c.n){v=vs.find(x=>x.name.includes(n));if(v)break}}

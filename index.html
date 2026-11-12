@@ -59,8 +59,8 @@ h1 span{color:var(--muted);font-weight:600}
 .sl{font-size:.9rem;color:#3c4043}.sl b{font-weight:700;letter-spacing:.02em;color:var(--ink)}
 .rep{border:0;background:none;color:var(--muted);font-size:.78rem;font-weight:600;padding:4px 0;margin-top:2px;align-self:flex-start;text-decoration:underline;text-underline-offset:2px}
 .voice{position:relative;margin:10px 0 0;font-size:.85rem;font-weight:700;color:#3c4043;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.voice select{font:inherit;font-weight:600;border:0;border-radius:999px;padding:7px 12px;background:rgba(255,255,255,.75);max-width:62vw}
-.voice button{border:0;border-radius:999px;padding:7px 14px;background:#1f1f1f;color:#fff;font-weight:700}
+.voice-old select{font:inherit;font-weight:600;border:0;border-radius:999px;padding:7px 12px;background:rgba(255,255,255,.75);max-width:62vw}
+.voice-old button{border:0;border-radius:999px;padding:7px 14px;background:#1f1f1f;color:#fff;font-weight:700}
 .repbox{margin-top:14px;background:var(--card);border-radius:18px;padding:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .repbox b{flex:1 1 100%}
 .repbox select{flex:1;min-width:0;font:inherit;border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}
@@ -132,24 +132,24 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random(
 const pick=a=>a[Math.random()*a.length|0];
 const reg=id=>R.find(r=>r.id===id);
 let srcNum={};
-const VP={gla:{n:["Fiona","Reed","Microsoft George","Microsoft Ryan","Google UK English Male"],p:1,r:.95},abd:{n:["Fiona","Grandpa","Microsoft George","Microsoft Ryan","Google UK English Male"],p:.9,r:.88},ni:{n:["Moira"],l:["en-IE"],p:1.05,r:1},
-ne:{n:["Rocko","Microsoft George","Microsoft Ryan","Google UK English Male"],p:1.1,r:1.05},yor:{n:["Eddy","Microsoft George","Microsoft Ryan","Google UK English Male"],p:.9,r:.92},man:{n:["Sandy","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:1,r:1.08},liv:{n:["Shelley","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:1.15,r:1.1},
-bham:{n:["Flo","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:.9,r:.9},em:{n:["Grandma","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:1.05,r:.95},nor:{n:["Google UK English Male","Microsoft George","Grandpa"],p:.85,r:.85},
-lon:{n:["Daniel","Microsoft George","Microsoft Ryan","Google UK English Male"],p:1,r:1.1},iow:{n:["Google UK English Female","Microsoft Sonia","Shelley"],p:.95,r:.88},
-sw:{n:["Reed","Microsoft Thomas","Microsoft George","Microsoft Ryan","Google UK English Male"],p:.78,r:.82},wal:{n:["Nia","Aled","Catrin","Sandy","Microsoft Libby","Microsoft Sonia","Google UK English Female"],l:["cy-GB","cy"],p:1.2,r:.95}};
+const VP={gla:{n:["Fiona","Reed","Microsoft George","Microsoft Ryan","Google UK English Male"],l:["en-scotland","en-GB"],p:1,r:.95},abd:{n:["Fiona","Grandpa","Microsoft George","Microsoft Ryan","Google UK English Male"],l:["en-scotland","en-GB"],p:.9,r:.88},
+ni:{n:["Moira","Microsoft Emily","Microsoft Connor"],l:["en-IE"],p:1.05,r:1},ne:{n:["Rocko","Microsoft George","Microsoft Ryan","Google UK English Male"],p:1.1,r:1.05},yor:{n:["Eddy","Microsoft George","Microsoft Ryan","Google UK English Male"],p:.9,r:.92},
+man:{n:["Sandy","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:1,r:1.08},liv:{n:["Shelley","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:1.15,r:1.1},bham:{n:["Flo","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:.9,r:.9},em:{n:["Grandma","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:1.05,r:.95},
+nor:{n:["Google UK English Male","Microsoft George","Grandpa"],p:.85,r:.85},lon:{n:["Daniel","Microsoft George","Microsoft Ryan","Google UK English Male"],p:1,r:1.1},
+iow:{n:["Google UK English Female","Microsoft Sonia","Shelley"],p:.95,r:.88},sw:{n:["Reed","Microsoft Thomas","Microsoft George","Microsoft Ryan","Google UK English Male"],p:.78,r:.82},
+wal:{n:["Microsoft Nia","Microsoft Aled","Nia","Aled","Catrin","Sandy","Microsoft Libby","Microsoft Sonia","Google UK English Female"],l:["cy-GB","cy"],p:1.2,r:.95}};
+const VKEY=id=>"ll-voice-"+id;
+function myVoices(){let vs=[];try{vs=speechSynthesis.getVoices()}catch(e){}return vs}
 const VKEY=id=>"ll-voice-"+id;
 function myVoices(){let vs=[];try{vs=speechSynthesis.getVoices()}catch(e){}return vs.filter(v=>/^(en[-_](GB|IE)|cy)/i.test(v.lang)||/Fiona|Moira/.test(v.name))}
 function voiceFor(id){let vs=[];try{vs=speechSynthesis.getVoices()}catch(e){}const c=VP[id]||{n:[]};
- let v=null;try{const s=localStorage.getItem(VKEY(id));if(s)v=vs.find(x=>x.name===s)||null}catch(e){}
- if(!v){for(const n of c.n){v=vs.find(x=>x.name.includes(n));if(v)break}}
+ let v=null;
+ {for(const n of c.n){v=vs.find(x=>x.name.includes(n));if(v)break}}
  if(!v&&c.l)for(const l of c.l){v=vs.find(x=>x.lang.replace("_","-").toLowerCase().startsWith(l.toLowerCase()));if(v)break}
  if(!v)v=vs.find(x=>/en[-_]GB/i.test(x.lang))||vs.find(x=>/^en/i.test(x.lang))||null;return v}
 const vname=n=>n.replace(/Microsoft |Google | Online \(Natural\)/g,"").split(" - ")[0].replace(/ \(English.*$/,"");
-function voiceLabel(){const vs=myVoices(),v=voiceFor(cur);
- if(!vs.length){$("#voice").innerHTML="🔊 Voice: your device default";return}
- $("#voice").innerHTML=`<label for="vsel">🔊 Voice</label><select id="vsel">${vs.map(x=>`<option value="${esc(x.name)}"${v&&x.name===v.name?" selected":""}>${esc(vname(x.name))} · ${esc(x.lang)}</option>`).join("")}</select><button id="vtry" type="button">Try</button>`;
- $("#vsel").onchange=e=>{try{localStorage.setItem(VKEY(cur),e.target.value)}catch(_){}const w=order[cur][0];say(w.w,w.p)};
- $("#vtry").onclick=()=>{const w=pick(order[cur]);say(w.w,w.p)}}
+function accentOf(v){const l=v.lang.toLowerCase();return /scotland/.test(l)||/fiona/i.test(v.name)?"Scottish accent":/^en[-_]ie/.test(l)?"Irish accent":/^cy/.test(l)?"Welsh accent":"British English"}
+function voiceLabel(){const v=voiceFor(cur);$("#voice").innerHTML=v?`🔊 ${esc(vname(v.name))} · ${accentOf(v)}`:"🔊 Your device's default voice"}
 try{speechSynthesis.onvoiceschanged=()=>{if(R)voiceLabel()}}catch(e){}
 function speakable(p){return p.replace(/\(.*?\)/g,"").replace(/-/g,"").toLowerCase()}
 function say(t,p){try{const c=VP[cur]||{p:1,r:.92};const u=new SpeechSynthesisUtterance(p?speakable(p):t);const v=voiceFor(cur);if(v){u.voice=v;u.lang=v.lang}else u.lang="en-GB";u.pitch=c.p;u.rate=c.r;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}

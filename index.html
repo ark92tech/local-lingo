@@ -58,7 +58,13 @@ h1 span{color:var(--muted);font-weight:600}
 .mean{color:var(--muted);font-weight:500}
 .sl{font-size:.9rem;color:#3c4043}.sl b{font-weight:700;letter-spacing:.02em;color:var(--ink)}
 .rep{border:0;background:none;color:var(--muted);font-size:.78rem;font-weight:600;padding:4px 0;margin-top:2px;align-self:flex-start;text-decoration:underline;text-underline-offset:2px}
-.voice{position:relative;margin:8px 0 0;font-size:.85rem;font-weight:600;color:#3c4043;display:flex;align-items:center;gap:6px}
+.voice{position:relative;margin:10px 0 0;font-size:.85rem;font-weight:700;color:#3c4043;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.voice select{font:inherit;font-weight:600;border:0;border-radius:999px;padding:7px 12px;background:rgba(255,255,255,.75);max-width:62vw}
+.voice button{border:0;border-radius:999px;padding:7px 14px;background:#1f1f1f;color:#fff;font-weight:700}
+.repbox{margin-top:14px;background:var(--card);border-radius:18px;padding:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.repbox b{flex:1 1 100%}
+.repbox select{flex:1;min-width:0;font:inherit;border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}
+.repbox a{background:#1f1f1f;color:#fff;border-radius:999px;padding:10px 16px;font-weight:700;text-decoration:none}
 details.src summary{cursor:pointer;font-weight:800;font-size:1.05rem;list-style:none;display:flex;justify-content:space-between;align-items:center}
 details.src summary::-webkit-details-marker{display:none}
 details.src summary::after{content:"Show";font-size:.85rem;font-weight:700;color:var(--blue)}
@@ -109,7 +115,7 @@ details.src[open] summary{margin-bottom:8px}
    </div>
    <button class="go" id="gen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg><span id="genL">New 20</span></button>
   </div>
-  <div id="pWords"><p class="count" id="count"></p><div class="grid" id="words"></div></div>
+  <div id="pWords"><p class="count" id="count"></p><div class="grid" id="words"></div><div class="repbox"><b>Something not quite right?</b><select id="repWord" aria-label="Which word"></select><a id="repGo" href="#" target="_blank" rel="noopener">⚑ Report</a></div></div>
   <div id="pQuiz" hidden><div class="quiz" id="quiz"></div></div>
   <details class="src" id="sources"><summary id="srcSum">Sources</summary><p>Words come from 19th-century dialect archives, university dialect surveys, YouGov polling and regional dictionaries, old and new mixed together. Tap a number next to a meaning to see where it came from. Region borders on the map are approximate. Voices use the accents built into your phone or computer, so they hint at the region rather than match it. On a Mac or iPhone, add the free “Fiona” (Scottish) and “Moira” (Irish) voices in Settings → Accessibility → Spoken Content for the best results.</p><ol id="srcList"></ol><a class="reportall" href="https://github.com/ark92tech/local-lingo/issues/new?title=Report%3A%20&body=What%27s%20not%20quite%20right%3F%0A%0A" target="_blank" rel="noopener">⚑ Report a word or suggest a new one</a></details>
   <p class="foot">Built for Ark · data in <a href="words.json">words.json</a></p>
@@ -126,20 +132,29 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random(
 const pick=a=>a[Math.random()*a.length|0];
 const reg=id=>R.find(r=>r.id===id);
 let srcNum={};
-const VP={gla:{n:["Fiona","Reed","Microsoft George","Microsoft Ryan","Google UK English Male"],l:["en-GB"],p:1,r:.95,a:"Scottish"},abd:{n:["Fiona","Grandpa","Microsoft George","Microsoft Ryan","Google UK English Male"],l:["en-GB"],p:.85,r:.88},
-ni:{n:["Moira"],l:["en-IE"],p:1.05,r:1},ne:{n:["Rocko","Microsoft George","Microsoft Ryan","Google UK English Male"],p:1.1,r:1.05},yor:{n:["Eddy","Microsoft George","Microsoft Ryan","Google UK English Male"],p:.9,r:.92},
-man:{n:["Sandy","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:1,r:1.08},liv:{n:["Shelley","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:1.15,r:1.1},bham:{n:["Flo","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:.9,r:.9},
-em:{n:["Grandma","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:1.05,r:.95},nor:{n:["Grandpa","Microsoft George","Microsoft Ryan","Google UK English Male"],p:.85,r:.85},lon:{n:["Daniel","Microsoft George","Microsoft Ryan","Google UK English Male"],p:1,r:1.1},
-iow:{n:["Eddy","Daniel","Microsoft George","Microsoft Ryan","Google UK English Male"],p:.85,r:.86},sw:{n:["Rocko","Microsoft George","Microsoft Ryan","Google UK English Male"],p:.8,r:.82},wal:{n:["Nia","Aled","Catrin","Flo","Microsoft Libby","Microsoft Sonia","Google UK English Female"],l:["cy-GB","cy"],p:1.15,r:.95}};
+const VP={gla:{n:["Fiona","Reed","Microsoft George","Microsoft Ryan","Google UK English Male"],p:1,r:.95},abd:{n:["Fiona","Grandpa","Microsoft George","Microsoft Ryan","Google UK English Male"],p:.9,r:.88},ni:{n:["Moira"],l:["en-IE"],p:1.05,r:1},
+ne:{n:["Rocko","Microsoft George","Microsoft Ryan","Google UK English Male"],p:1.1,r:1.05},yor:{n:["Eddy","Microsoft George","Microsoft Ryan","Google UK English Male"],p:.9,r:.92},man:{n:["Sandy","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:1,r:1.08},liv:{n:["Shelley","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:1.15,r:1.1},
+bham:{n:["Flo","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:.9,r:.9},em:{n:["Grandma","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:1.05,r:.95},nor:{n:["Google UK English Male","Microsoft George","Grandpa"],p:.85,r:.85},
+lon:{n:["Daniel","Microsoft George","Microsoft Ryan","Google UK English Male"],p:1,r:1.1},iow:{n:["Google UK English Female","Microsoft Sonia","Shelley"],p:.95,r:.88},
+sw:{n:["Reed","Microsoft Thomas","Microsoft George","Microsoft Ryan","Google UK English Male"],p:.78,r:.82},wal:{n:["Nia","Aled","Catrin","Sandy","Microsoft Libby","Microsoft Sonia","Google UK English Female"],l:["cy-GB","cy"],p:1.2,r:.95}};
+const VKEY=id=>"ll-voice-"+id;
+function myVoices(){let vs=[];try{vs=speechSynthesis.getVoices()}catch(e){}return vs.filter(v=>/^(en|cy)/i.test(v.lang))}
 function voiceFor(id){let vs=[];try{vs=speechSynthesis.getVoices()}catch(e){}const c=VP[id]||{n:[]};
- let v=null;for(const n of c.n){v=vs.find(x=>x.name.includes(n));if(v)break}
+ let v=null;try{const s=localStorage.getItem(VKEY(id));if(s)v=vs.find(x=>x.name===s)||null}catch(e){}
+ if(!v){for(const n of c.n){v=vs.find(x=>x.name.includes(n));if(v)break}}
  if(!v&&c.l)for(const l of c.l){v=vs.find(x=>x.lang.replace("_","-").toLowerCase().startsWith(l.toLowerCase()));if(v)break}
  if(!v)v=vs.find(x=>/en[-_]GB/i.test(x.lang))||vs.find(x=>/^en/i.test(x.lang))||null;return v}
-function voiceLabel(){const v=voiceFor(cur);$("#voice").innerHTML=v?`🔊 Voice: ${esc(v.name.replace(/Microsoft |Google | Online \(Natural\)/g,"").split(" - ")[0].replace(/ \(English.*$/,""))}`:"🔊 Voice: your device default"}
+const vname=n=>n.replace(/Microsoft |Google | Online \(Natural\)/g,"").split(" - ")[0].replace(/ \(English.*$/,"");
+function voiceLabel(){const vs=myVoices(),v=voiceFor(cur);
+ if(!vs.length){$("#voice").innerHTML="🔊 Voice: your device default";return}
+ $("#voice").innerHTML=`<label for="vsel">🔊 Voice</label><select id="vsel">${vs.map(x=>`<option value="${esc(x.name)}"${v&&x.name===v.name?" selected":""}>${esc(vname(x.name))} · ${esc(x.lang)}</option>`).join("")}</select><button id="vtry" type="button">Try</button>`;
+ $("#vsel").onchange=e=>{try{localStorage.setItem(VKEY(cur),e.target.value)}catch(_){}const w=order[cur][0];say(w.w,w.p)};
+ $("#vtry").onclick=()=>{const w=pick(order[cur]);say(w.w,w.p)}}
 try{speechSynthesis.onvoiceschanged=()=>{if(R)voiceLabel()}}catch(e){}
 function speakable(p){return p.replace(/\(.*?\)/g,"").replace(/-/g,"").toLowerCase()}
 function say(t,p){try{const c=VP[cur]||{p:1,r:.92};const u=new SpeechSynthesisUtterance(p?speakable(p):t);const v=voiceFor(cur);if(v){u.voice=v;u.lang=v.lang}else u.lang="en-GB";u.pitch=c.p;u.rate=c.r;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
-const REPO="https://github.com/ark92tech/local-lingo/issues/new";
+const REPO="https://github.com/ark92tech/local-lingo/issues/new";let REPLIST=[];
+function updRep(){const i=+$("#repWord").value;const r=reg(cur);$("#repGo").href=i<0?REPO+"?title="+encodeURIComponent(`Suggestion (${r.name})`)+"&body="+encodeURIComponent(`Region: ${r.name}\n\nWord, meaning, and where you heard it:\n\n`):reportURL(REPLIST[i])}
 function reportURL(w){const r=reg(cur);return REPO+"?title="+encodeURIComponent(`Report: “${w.w}” (${r.name})`)+"&body="+encodeURIComponent(`Word: ${w.w}\nRegion: ${r.name}\nShown meaning: ${w.m}\n\nWhat's not quite right? (meaning, spelling, region, pronunciation…)\n\n`)}
 function byMeaning(m,not){const out=[];R.forEach(r=>{if(r.id===not)return;r.words.forEach(w=>{if(w.m===m&&!out.some(o=>o.w===w.w&&o.r===r.id))out.push({w:w.w,r:r.id})})});return out}
 function setRegion(id,scroll){cur=id;page=0;if(!order[id])order[id]=shuffle(reg(id).words);
@@ -155,10 +170,11 @@ function setRegion(id,scroll){cur=id;page=0;if(!order[id])order[id]=shuffle(reg(
 function renderWords(){const r=reg(cur),o=order[cur],n=o.length;
  const start=(page*20)%n;let list=[];for(let i=0;i<Math.min(20,n);i++)list.push(o[(start+i)%n]);
  $("#count").textContent=n>20?`${Math.min(20,n)} of ${n} words · tap “New 20” for more`:`All ${n} words`;
+ REPLIST=list;$("#repWord").innerHTML=`<option value="-1">General / suggest a new word</option>`+list.map((w,i)=>`<option value="${i}">${esc(w.w)} — ${esc(w.m)}</option>`).join("");updRep();
  $("#words").innerHTML=list.map((w,i)=>{const also=byMeaning(w.m,cur).filter(a=>a.w!==w.w).slice(0,3);
   return `<article class="w" style="animation-delay:${i*25}ms"><div class="top"><div class="word">${esc(w.w)}</div><button class="say" data-say="${esc(w.w)}" data-p="${esc(w.p||"")}" aria-label="Say ${esc(w.w)}">${SPK}</button></div>${w.p?`<div class="sl">sounds like <b>${esc(w.p)}</b></div>`:""}
   <div class="mean">${esc(w.m)}<sup><a href="#s-${w.s}" title="${esc(D.sources[w.s][0])}">${srcNum[w.s]}</a></sup></div>
-  ${also.length?`<div class="also">${also.map(a=>`<button data-go="${a.r}" style="--c:${COLS[a.r]}"><i></i><b>${esc(a.w)}</b> ${esc(reg(a.r).name.split(/ [&,]/)[0])}</button>`).join("")}</div>`:""}<a class="rep" href="${reportURL(w)}" target="_blank" rel="noopener">⚑ Not quite right? Report</a></article>`}).join("")}
+  ${also.length?`<div class="also">${also.map(a=>`<button data-go="${a.r}" style="--c:${COLS[a.r]}"><i></i><b>${esc(a.w)}</b> ${esc(reg(a.r).name.split(/ [&,]/)[0])}</button>`).join("")}</div>`:""}</article>`}).join("")}
 function makeQ(){const types=shuffle(["word","where","mean"]);
  for(const t of types){
   if(t==="word"){const m=pick(Object.keys(MEAN).filter(k=>MEAN[k].length>=3));const right=pick(MEAN[m]);
@@ -195,6 +211,7 @@ document.addEventListener("click",e=>{const t=e.target.closest("[data-r],[data-g
  const id=t.dataset.go||t.dataset.r;if(id)setRegion(id,!!t.dataset.go)});
 document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.classList.contains("zone")){e.preventDefault();setRegion(e.target.dataset.r,true)}});
 document.addEventListener("click",e=>{const a=e.target.closest('a[href^="#s-"]');if(a){e.preventDefault();const d=$("#sources");d.open=true;const li=document.querySelector(a.getAttribute("href"));if(li){li.scrollIntoView({behavior:"smooth",block:"center"});li.style.background="#FEF7E0";setTimeout(()=>li.style.background="",2000)}}});
+document.addEventListener("change",e=>{if(e.target.id==="repWord")updRep()});
 $("#tWords").onclick=()=>setMode("words");$("#tQuiz").onclick=()=>setMode("quiz");
 $("#gen").onclick=()=>{if(mode==="quiz")return newQuiz();const n=order[cur].length;if(n<=20)order[cur]=shuffle(order[cur]);else{page++;if(page*20>=n){order[cur]=shuffle(order[cur]);page=0}}renderWords()};
 </script>

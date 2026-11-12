@@ -88,6 +88,9 @@ details.src[open] summary{margin-bottom:8px}
 .fb{margin:12px 0 0;font-weight:600;min-height:1.4em}
 .next{margin-top:12px;width:100%;border:0;background:#1f1f1f;color:#fff;border-radius:999px;padding:13px;font-weight:700}
 .score{text-align:center;padding:10px 0}.score b{font-size:3rem;display:block;line-height:1}
+.qscope{display:flex;gap:8px;margin:-2px 0 10px;overflow-x:auto}.qscope button{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-weight:700;font-size:.88rem}.qscope button[aria-pressed=true]{background:#1f1f1f;color:#fff;border-color:#1f1f1f}
+.share{display:flex;gap:8px;margin-top:10px}.share button,.share a{flex:1;text-align:center;border:0;border-radius:999px;padding:12px;font-weight:700;text-decoration:none;background:#E8F0FE;color:#1967D2}
+.copied{color:var(--green);font-weight:700;text-align:center;margin-top:8px;min-height:1.2em}
 .src{margin-top:26px;background:var(--card);border-radius:var(--r);padding:18px}
 .src h3{margin:0 0 4px;font-size:1.1rem}
 .src p{color:var(--muted);margin:0 0 10px;font-size:.92rem}
@@ -116,7 +119,7 @@ details.src[open] summary{margin-bottom:8px}
    <button class="go" id="gen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg><span id="genL">New 20</span></button>
   </div>
   <div id="pWords"><p class="count" id="count"></p><div class="grid" id="words"></div><div class="repbox"><b>Something not quite right?</b><select id="repWord" aria-label="Which word"></select><a id="repGo" href="#" target="_blank" rel="noopener">⚑ Report</a></div></div>
-  <div id="pQuiz" hidden><div class="quiz" id="quiz"></div></div>
+  <div id="pQuiz" hidden><div class="qscope" role="group" aria-label="Quiz scope"><button id="qsReg" aria-pressed="true"></button><button id="qsAll" aria-pressed="false">All UK</button></div><div class="quiz" id="quiz"></div></div>
   <details class="src" id="sources"><summary id="srcSum">Sources</summary><p>Words come from 19th-century dialect archives, university dialect surveys, YouGov polling and regional dictionaries, old and new mixed together. Tap a number next to a meaning to see where it came from. Region borders on the map are approximate. Voices use the accents built into your phone or computer, so they hint at the region rather than match it. On a Mac or iPhone, add the free “Fiona” (Scottish) and “Moira” (Irish) voices in Settings → Accessibility → Spoken Content for the best results.</p><ol id="srcList"></ol><a class="reportall" href="https://github.com/ark92tech/local-lingo/issues/new?title=Report%3A%20&body=What%27s%20not%20quite%20right%3F%0A%0A" target="_blank" rel="noopener">⚑ Report a word or suggest a new one</a></details>
   <p class="foot">Built for Ark · data in <a href="words.json">words.json</a></p>
  </main>
@@ -140,8 +143,7 @@ iow:{n:["Google UK English Female","Microsoft Sonia","Shelley"],p:.95,r:.88},sw:
 wal:{n:["Microsoft Nia","Microsoft Aled","Nia","Aled","Catrin","Sandy","Microsoft Libby","Microsoft Sonia","Google UK English Female"],l:["cy-GB","cy"],p:1.2,r:.95}};
 const VKEY=id=>"ll-voice-"+id;
 function myVoices(){let vs=[];try{vs=speechSynthesis.getVoices()}catch(e){}return vs}
-const VKEY=id=>"ll-voice-"+id;
-function myVoices(){let vs=[];try{vs=speechSynthesis.getVoices()}catch(e){}return vs.filter(v=>/^(en[-_](GB|IE)|cy)/i.test(v.lang)||/Fiona|Moira/.test(v.name))}
+
 function voiceFor(id){let vs=[];try{vs=speechSynthesis.getVoices()}catch(e){}const c=VP[id]||{n:[]};
  let v=null;
  {for(const n of c.n){v=vs.find(x=>x.name.includes(n));if(v)break}}
@@ -163,7 +165,7 @@ function setRegion(id,scroll){cur=id;page=0;if(!order[id])order[id]=shuffle(reg(
  document.querySelectorAll(".pin").forEach(z=>z.classList.toggle("on",z.dataset.r===id));
  document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.r===id));
  const ch=document.querySelector(`.chip[data-r="${id}"]`);if(ch)ch.scrollIntoView({block:"nearest",inline:"center",behavior:"smooth"});
- $("#rname").textContent=reg(id).name;$("#rplaces").textContent=reg(id).places;voiceLabel();
+ $("#rname").textContent=reg(id).name;$("#rplaces").textContent=reg(id).places;voiceLabel();$("#qsReg").textContent=reg(id).name.split(/ [&,]/)[0]+" quiz";
  history.replaceState(null,"","#"+id);
  if(mode==="quiz")newQuiz();else renderWords();
  if(scroll)$("#hero").scrollIntoView({behavior:"smooth",block:"start"})}
@@ -175,19 +177,36 @@ function renderWords(){const r=reg(cur),o=order[cur],n=o.length;
   return `<article class="w" style="animation-delay:${i*25}ms"><div class="top"><div class="word">${esc(w.w)}</div><button class="say" data-say="${esc(w.w)}" data-p="${esc(w.p||"")}" aria-label="Say ${esc(w.w)}">${SPK}</button></div>${w.p?`<div class="sl">sounds like <b>${esc(w.p)}</b></div>`:""}
   <div class="mean">${esc(w.m)}<sup><a href="#s-${w.s}" title="${esc(D.sources[w.s][0])}">${srcNum[w.s]}</a></sup></div>
   ${also.length?`<div class="also">${also.map(a=>`<button data-go="${a.r}" style="--c:${COLS[a.r]}"><i></i><b>${esc(a.w)}</b> ${esc(reg(a.r).name.split(/ [&,]/)[0])}</button>`).join("")}</div>`:""}</article>`}).join("")}
-function makeQ(){const types=shuffle(["word","where","mean"]);
+let QSCOPE="reg";
+function makeQ(){if(QSCOPE==="reg")return makeRegQ();return makeAllQ()}
+function makeRegQ(){const r=reg(cur),words=r.words;const t=pick(["mean","mean","word","odd"]);
+ if(t==="mean"){const w=pick(words);const wrong=shuffle([...new Set(ALLM.filter(m=>m!==w.m&&!words.some(z=>z.w===w.w&&z.m===m)))]).slice(0,3);
+  return{q:`In <em>${esc(r.name)}</em>, what does “${esc(w.w)}” mean?`,opts:shuffle([w.m,...wrong]),a:w.m,r:r.id,ex:`“${w.w}” = ${w.m}.`}}
+ if(t==="word"){const w=pick(words);const others=shuffle(R.filter(x=>x.id!==r.id).flatMap(x=>x.words.map(z=>z.w)).filter(z=>!words.some(y=>y.w.toLowerCase()===z.toLowerCase())));
+  const same=shuffle((MEAN[w.m]||[]).filter(x=>x.r!==r.id&&!words.some(y=>y.w===x.w)).map(x=>x.w));const wrong=[...new Set([...same,...others])].slice(0,3);
+  return{q:`What would you say in <em>${esc(r.name)}</em> for “${esc(w.m)}”?`,opts:shuffle([w.w,...wrong]),a:w.w,r:r.id,ex:`In ${r.name}: “${w.w}” = ${w.m}.`}}
+ const w=pick(words);const others=shuffle(R.filter(x=>x.id!==r.id).flatMap(x=>x.words.map(z=>({w:z.w,r:x.id}))).filter(z=>!words.some(y=>y.w.toLowerCase()===z.w.toLowerCase()))).slice(0,3);
+ return{q:`Which of these would you hear in <em>${esc(r.name)}</em>?`,opts:shuffle([w.w,...others.map(o=>o.w)]),a:w.w,r:r.id,ex:`“${w.w}” = ${w.m}. The others are from ${[...new Set(others.map(o=>reg(o.r).name.split(/ [&,]/)[0]))].join(", ")}.`}}
+function makeAllQ(){const types=shuffle(["word","where","mean"]);
  for(const t of types){
   if(t==="word"){const m=pick(Object.keys(MEAN).filter(k=>MEAN[k].length>=3));const right=pick(MEAN[m]);
-   const wrong=shuffle(MEAN[m].filter(x=>x.w.toLowerCase()!==right.w.toLowerCase()&&!MEAN[m].some(y=>y.r===right.r&&y.w===x.w)));const uniq=[...new Set(wrong.map(x=>x.w))].filter(w=>!reg(right.r).words.some(z=>z.w===w&&z.m===m)).slice(0,3);
+   const wrong=shuffle(MEAN[m].filter(x=>x.w.toLowerCase()!==right.w.toLowerCase()));const uniq=[...new Set(wrong.map(x=>x.w))].filter(w=>!reg(right.r).words.some(z=>z.w===w&&z.m===m)).slice(0,3);
    if(uniq.length<2)continue;return{q:`In <em>${esc(reg(right.r).name)}</em>, what's a word for “${esc(m)}”?`,opts:shuffle([right.w,...uniq]),a:right.w,r:right.r,ex:`“${right.w}” = ${m} in ${reg(right.r).name}.`}}
   if(t==="where"){const r=pick(R),w=pick(r.words);const has=R.filter(x=>x.words.some(z=>z.w.toLowerCase()===w.w.toLowerCase())).map(x=>x.id);
    const others=shuffle(R.filter(x=>!has.includes(x.id))).slice(0,3);if(others.length<3)continue;
    return{q:`Where would you hear <em>${esc(w.w)}</em> meaning “${esc(w.m)}”?`,opts:shuffle([r.name,...others.map(x=>x.name)]),a:r.name,r:r.id,ex:`${r.name}: “${w.w}” = ${w.m}.`}}
   if(t==="mean"){const r=pick(R),w=pick(r.words);const wrong=shuffle([...new Set(ALLM.filter(m=>m!==w.m&&!r.words.some(z=>z.w===w.w&&z.m===m)))]).slice(0,3);
    return{q:`In <em>${esc(r.name)}</em>, what does “${esc(w.w)}” mean?`,opts:shuffle([w.m,...wrong]),a:w.m,r:r.id,ex:`“${w.w}” = ${w.m}.`}}}
- return makeQ()}
+ return makeAllQ()}
+function setScope(s){QSCOPE=s;$("#qsReg").setAttribute("aria-pressed",s==="reg");$("#qsAll").setAttribute("aria-pressed",s==="all");newQuiz()}
+const SITE="https://local-lingo-teal.vercel.app/";
+function shareText(){const z=quiz;const where=QSCOPE==="reg"?`the ${reg(cur).name} quiz`:"the All-UK quiz";return `I scored ${z.score}/10 on ${where} on Local Lingo 🇬🇧 Can you beat me?`}
+function shareURL(){return SITE+"#"+cur}
+async function doShare(){const text=shareText(),url=shareURL();try{if(navigator.share){await navigator.share({title:"Local Lingo",text,url});return}}catch(e){if(e&&e.name==="AbortError")return}
+ try{await navigator.clipboard.writeText(text+" "+url);$("#copied").textContent="Copied! Paste it anywhere."}catch(e){$("#copied").textContent=text+" "+url}}
 function newQuiz(){const qs=[];const seen=new Set();while(qs.length<10){const q=makeQ();if(!seen.has(q.q)){seen.add(q.q);qs.push(q)}}quiz={qs,i:0,score:0,done:false};renderQuiz()}
-function renderQuiz(){const z=quiz;if(z.i>=z.qs.length){$("#quiz").innerHTML=`<div class="score"><b>${z.score}/10</b><p>${z.score>=8?"Proper job! You're a local everywhere.":z.score>=5?"Tidy. Not bad at all, butt.":"Give over! Have another go, our kid."}</p></div><button class="next" id="again">Play again</button>`;$("#again").onclick=newQuiz;return}
+function renderQuiz(){const z=quiz;if(z.i>=z.qs.length){const wa="https://wa.me/?text="+encodeURIComponent(shareText()+" "+shareURL());
+ $("#quiz").innerHTML=`<div class="score"><b>${z.score}/10</b><p>${QSCOPE==="reg"?esc(reg(cur).name)+" · ":"All UK · "}${z.score>=8?"Proper job! You'd pass for a local.":z.score>=5?"Tidy. Not bad at all.":"Give over! Have another go."}</p></div><div class="share"><button id="shareBtn" type="button">Share result</button><a href="${wa}" target="_blank" rel="noopener">WhatsApp</a></div><p class="copied" id="copied"></p><button class="next" id="again">Play again</button>`;$("#again").onclick=newQuiz;$("#shareBtn").onclick=doShare;return}
  const q=z.qs[z.i];
  $("#quiz").innerHTML=`<div class="qhead"><span>Question ${z.i+1} of 10</span><span>Score ${z.score}</span></div><div class="prog"><i style="width:${z.i*10}%"></i></div>
  <p class="q" style="--c:${COLS[q.r]}">${q.q}</p><div class="opts">${q.opts.map(o=>`<button class="opt" data-o="${esc(o)}">${esc(o)}</button>`).join("")}</div><p class="fb" id="fb"></p>`}
@@ -212,6 +231,7 @@ document.addEventListener("click",e=>{const t=e.target.closest("[data-r],[data-g
 document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.classList.contains("zone")){e.preventDefault();setRegion(e.target.dataset.r,true)}});
 document.addEventListener("click",e=>{const a=e.target.closest('a[href^="#s-"]');if(a){e.preventDefault();const d=$("#sources");d.open=true;const li=document.querySelector(a.getAttribute("href"));if(li){li.scrollIntoView({behavior:"smooth",block:"center"});li.style.background="#FEF7E0";setTimeout(()=>li.style.background="",2000)}}});
 document.addEventListener("change",e=>{if(e.target.id==="repWord")updRep()});
+$("#qsReg").onclick=()=>setScope("reg");$("#qsAll").onclick=()=>setScope("all");
 $("#tWords").onclick=()=>setMode("words");$("#tQuiz").onclick=()=>setMode("quiz");
 $("#gen").onclick=()=>{if(mode==="quiz")return newQuiz();const n=order[cur].length;if(n<=20)order[cur]=shuffle(order[cur]);else{page++;if(page*20>=n){order[cur]=shuffle(order[cur]);page=0}}renderWords()};
 </script>

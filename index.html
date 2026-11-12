@@ -111,7 +111,7 @@ details.src[open] summary{margin-bottom:8px}
   </div>
   <div id="pWords"><p class="count" id="count"></p><div class="grid" id="words"></div></div>
   <div id="pQuiz" hidden><div class="quiz" id="quiz"></div></div>
-  <details class="src" id="sources"><summary id="srcSum">Sources</summary><p>Words come from 19th-century dialect archives, university dialect surveys, YouGov polling and regional dictionaries, old and new mixed together. Tap a number next to a meaning to see where it came from. Region borders on the map are approximate. Voices use the accents built into your phone or computer, so they hint at the region rather than match it.</p><ol id="srcList"></ol><a class="reportall" href="https://github.com/ark92tech/local-lingo/issues/new?title=Report%3A%20&body=What%27s%20not%20quite%20right%3F%0A%0A" target="_blank" rel="noopener">⚑ Report a word or suggest a new one</a></details>
+  <details class="src" id="sources"><summary id="srcSum">Sources</summary><p>Words come from 19th-century dialect archives, university dialect surveys, YouGov polling and regional dictionaries, old and new mixed together. Tap a number next to a meaning to see where it came from. Region borders on the map are approximate. Voices use the accents built into your phone or computer, so they hint at the region rather than match it. On a Mac or iPhone, add the free “Fiona” (Scottish) and “Moira” (Irish) voices in Settings → Accessibility → Spoken Content for the best results.</p><ol id="srcList"></ol><a class="reportall" href="https://github.com/ark92tech/local-lingo/issues/new?title=Report%3A%20&body=What%27s%20not%20quite%20right%3F%0A%0A" target="_blank" rel="noopener">⚑ Report a word or suggest a new one</a></details>
   <p class="foot">Built for Ark · data in <a href="words.json">words.json</a></p>
  </main>
 </div>
@@ -126,18 +126,16 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random(
 const pick=a=>a[Math.random()*a.length|0];
 const reg=id=>R.find(r=>r.id===id);
 let srcNum={};
-const VP={gla:{n:["Fiona"],l:["en-GB"],p:1,r:.95,a:"Scottish"},abd:{n:["Fiona"],l:["en-GB"],p:.85,r:.88,a:"Scottish"},ni:{n:["Moira"],l:["en-IE"],p:1.05,r:1,a:"Irish"},
-ne:{n:["Daniel","Microsoft Ryan","Google UK English Male"],p:1.1,r:1.05},yor:{n:["Arthur","Microsoft George","Google UK English Male"],p:.85,r:.92},
-man:{n:["Oliver","Microsoft Ryan","Google UK English Male"],p:1,r:1.08},liv:{n:["Kate","Microsoft Libby","Google UK English Female"],p:1.2,r:1.12},
-bham:{n:["Serena","Microsoft Hazel","Google UK English Female"],p:.9,r:.9},em:{n:["Martha","Microsoft Susan","Google UK English Female"],p:1.05,r:.95},
-nor:{n:["Daniel","Microsoft George","Google UK English Male"],p:.8,r:.85},lon:{n:["Daniel","Microsoft Ryan","Google UK English Male"],p:1,r:1.1},
-iow:{n:["Kate","Microsoft Sonia","Google UK English Female"],p:.95,r:.85},sw:{n:["Arthur","Microsoft Thomas","Google UK English Male"],p:.8,r:.82},
-wal:{n:["Nia","Aled","Catrin"],l:["cy-GB","cy"],p:1.15,r:.95,a:"Welsh"}};
+const VP={gla:{n:["Fiona","Reed","Microsoft George","Microsoft Ryan","Google UK English Male"],l:["en-GB"],p:1,r:.95,a:"Scottish"},abd:{n:["Fiona","Grandpa","Microsoft George","Microsoft Ryan","Google UK English Male"],l:["en-GB"],p:.85,r:.88},
+ni:{n:["Moira"],l:["en-IE"],p:1.05,r:1},ne:{n:["Rocko","Microsoft George","Microsoft Ryan","Google UK English Male"],p:1.1,r:1.05},yor:{n:["Eddy","Microsoft George","Microsoft Ryan","Google UK English Male"],p:.9,r:.92},
+man:{n:["Sandy","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:1,r:1.08},liv:{n:["Shelley","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:1.15,r:1.1},bham:{n:["Flo","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:.9,r:.9},
+em:{n:["Grandma","Microsoft Libby","Microsoft Sonia","Google UK English Female"],p:1.05,r:.95},nor:{n:["Grandpa","Microsoft George","Microsoft Ryan","Google UK English Male"],p:.85,r:.85},lon:{n:["Daniel","Microsoft George","Microsoft Ryan","Google UK English Male"],p:1,r:1.1},
+iow:{n:["Eddy","Daniel","Microsoft George","Microsoft Ryan","Google UK English Male"],p:.85,r:.86},sw:{n:["Rocko","Microsoft George","Microsoft Ryan","Google UK English Male"],p:.8,r:.82},wal:{n:["Nia","Aled","Catrin","Flo","Microsoft Libby","Microsoft Sonia","Google UK English Female"],l:["cy-GB","cy"],p:1.15,r:.95}};
 function voiceFor(id){let vs=[];try{vs=speechSynthesis.getVoices()}catch(e){}const c=VP[id]||{n:[]};
  let v=null;for(const n of c.n){v=vs.find(x=>x.name.includes(n));if(v)break}
  if(!v&&c.l)for(const l of c.l){v=vs.find(x=>x.lang.replace("_","-").toLowerCase().startsWith(l.toLowerCase()));if(v)break}
  if(!v)v=vs.find(x=>/en[-_]GB/i.test(x.lang))||vs.find(x=>/^en/i.test(x.lang))||null;return v}
-function voiceLabel(){const v=voiceFor(cur);$("#voice").innerHTML=v?`🔊 Voice: ${esc(v.name.replace(/Microsoft |Google | Online \(Natural\)/g,"").split(" - ")[0])}`:"🔊 Voice: your device default"}
+function voiceLabel(){const v=voiceFor(cur);$("#voice").innerHTML=v?`🔊 Voice: ${esc(v.name.replace(/Microsoft |Google | Online \(Natural\)/g,"").split(" - ")[0].replace(/ \(English.*$/,""))}`:"🔊 Voice: your device default"}
 try{speechSynthesis.onvoiceschanged=()=>{if(R)voiceLabel()}}catch(e){}
 function speakable(p){return p.replace(/\(.*?\)/g,"").replace(/-/g,"").toLowerCase()}
 function say(t,p){try{const c=VP[cur]||{p:1,r:.92};const u=new SpeechSynthesisUtterance(p?speakable(p):t);const v=voiceFor(cur);if(v){u.voice=v;u.lang=v.lang}else u.lang="en-GB";u.pitch=c.p;u.rate=c.r;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}

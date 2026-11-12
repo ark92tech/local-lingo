@@ -202,11 +202,9 @@ function setScope(s){QSCOPE=s;$("#qsReg").setAttribute("aria-pressed",s==="reg")
 const SITE="https://local-lingo-teal.vercel.app/";
 function shareText(){const z=quiz;const where=QSCOPE==="reg"?`the ${reg(cur).name} quiz`:"the All-UK quiz";return `I scored ${z.score}/10 on ${where} on Local Lingo 🇬🇧 Can you beat me?`}
 function shareURL(){return SITE+"#"+cur}
-async function doShare(){const text=shareText(),url=shareURL();try{if(navigator.share){await navigator.share({title:"Local Lingo",text,url});return}}catch(e){if(e&&e.name==="AbortError")return}
- try{await navigator.clipboard.writeText(text+" "+url);$("#copied").textContent="Copied! Paste it anywhere."}catch(e){$("#copied").textContent=text+" "+url}}
+async function doShare(){const s=shareText()+" "+shareURL();try{await navigator.clipboard.writeText(s);$("#copied").textContent="Link copied! Paste it anywhere."}catch(e){$("#copied").textContent=s}}
 function newQuiz(){const qs=[];const seen=new Set();while(qs.length<10){const q=makeQ();if(!seen.has(q.q)){seen.add(q.q);qs.push(q)}}quiz={qs,i:0,score:0,done:false};renderQuiz()}
-function renderQuiz(){const z=quiz;if(z.i>=z.qs.length){const wa="https://wa.me/?text="+encodeURIComponent(shareText()+" "+shareURL());
- $("#quiz").innerHTML=`<div class="score"><b>${z.score}/10</b><p>${QSCOPE==="reg"?esc(reg(cur).name)+" · ":"All UK · "}${z.score>=8?"Proper job! You'd pass for a local.":z.score>=5?"Tidy. Not bad at all.":"Give over! Have another go."}</p></div><div class="share"><button id="shareBtn" type="button">Share result</button><a href="${wa}" target="_blank" rel="noopener">WhatsApp</a></div><p class="copied" id="copied"></p><button class="next" id="again">Play again</button>`;$("#again").onclick=newQuiz;$("#shareBtn").onclick=doShare;return}
+function renderQuiz(){const z=quiz;if(z.i>=z.qs.length){ $("#quiz").innerHTML=`<div class="score"><b>${z.score}/10</b><p>${QSCOPE==="reg"?esc(reg(cur).name)+" · ":"All UK · "}${z.score>=8?"Proper job! You'd pass for a local.":z.score>=5?"Tidy. Not bad at all.":"Give over! Have another go."}</p></div><div class="share"><button id="shareBtn" type="button">Copy link to share</button></div><p class="copied" id="copied"></p><button class="next" id="again">Play again</button>`;$("#again").onclick=newQuiz;$("#shareBtn").onclick=doShare;return}
  const q=z.qs[z.i];
  $("#quiz").innerHTML=`<div class="qhead"><span>Question ${z.i+1} of 10</span><span>Score ${z.score}</span></div><div class="prog"><i style="width:${z.i*10}%"></i></div>
  <p class="q" style="--c:${COLS[q.r]}">${q.q}</p><div class="opts">${q.opts.map(o=>`<button class="opt" data-o="${esc(o)}">${esc(o)}</button>`).join("")}</div><p class="fb" id="fb"></p>`}
